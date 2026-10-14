@@ -1,336 +1,574 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>מערכת נוכחות פלוגתית - קו 2026</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        body { background-color: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
-        header { background-color: #0f172a; color: white; padding: 16px 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
-        h1 { font-size: 22px; font-weight: 700; }
-        p.subtitle { font-size: 13px; color: #94a3b8; margin-top: 4px; }
-        .btn-group { display: flex; gap: 10px; }
-        button { padding: 8px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
-        .btn-emerald { background-color: #059669; color: white; }
-        .btn-emerald:hover { background-color: #047857; }
-        .btn-rose { background-color: #e11d48; color: white; }
-        .btn-rose:hover { background-color: #be123c; }
-        
-        .stats-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 16px 24px; }
-        .stats-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; text-align: center; }
-        .stat-card { padding: 12px; border-radius: 12px; border: 1px solid; }
-        .stat-card.indigo { background-color: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
-        .stat-card.emerald { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
-        .stat-card.amber { background-color: #fffbeb; border-color: #fde68a; color: #92400e; }
-        .stat-card.rose { background-color: #fff1f2; border-color: #fecdd3; color: #991b1b; }
-        .stat-val { font-size: 24px; font-weight: 700; margin-top: 4px; display: block; }
-        .stat-label { font-size: 13px; font-weight: 500; }
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --ink:#1E2619; --ink2:#5A6552; --paper:#EDEFE8; --sheet:#F8F9F5; --line:#C7CDBE; --soft:#E3E7DC;
+  --present:#4C7A34; --present-l:#DCE8D2;
+  --home:#2C6A9A; --home-l:#D3E2EF;
+  --out:#B9822A; --out-l:#F5E6CC;
+  --in:#7E8F2E; --in-l:#E9EDCB;
+  --duty:#6A5A93; --duty-l:#E2DDF0;
+  --sick:#B4553F; --sick-l:#F4DAD3;
+  --awol:#8E1F1F; --awol-l:#F0C9C9;
+  --empty:#AEB4A6;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:Rubik,Arial,sans-serif;font-size:14px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
 
-        main { max-width: 1400px; width: 100%; margin: 24px auto; padding: 0 24px; flex-grow: 1; display: flex; flex-direction: column; gap: 16px; }
-        .controls { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
-        input, select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
-        input:focus, select:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
+/* מסגרת */
+.top{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;padding:10px 16px 0;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.top-row{display:flex;align-items:center;gap:12px;max-width:1200px;margin:0 auto}
+.top h1{font-size:19px;margin:0;font-weight:700;flex:1}
+.sync{font-size:12px;color:#C9D3BF;white-space:nowrap}
+.sync.saving{color:#F2D38B}
+.iconbtn{background:transparent;border:1px solid #4A5743;color:#fff;border-radius:8px;padding:5px 10px}
+.tabs{display:flex;gap:2px;max-width:1200px;margin:8px auto 0;overflow-x:auto}
+.tabs button{background:transparent;border:0;color:#C9D3BF;padding:9px 14px 10px;border-bottom:3px solid transparent;white-space:nowrap}
+.tabs button[aria-selected=true]{color:#fff;border-bottom-color:#9FC27F;font-weight:500}
+main{max-width:1200px;margin:0 auto;padding:14px 14px 96px}
 
-        .table-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow-x: auto; flex-grow: 1; max-height: 650px; }
-        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 13px; }
-        th, td { padding: 10px 12px; border-left: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
-        th { background-color: #f1f5f9; color: #334155; position: sticky; top: 0; z-index: 10; }
-        th.date-header { background-color: #1e293b; color: white; top: 37px; }
-        .sticky-name { position: sticky; right: 0; background-color: white; z-index: 5; font-weight: 600; }
-        th.sticky-name { z-index: 15; background-color: #f1f5f9; }
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 10px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.muted{color:var(--ink2);font-size:12.5px}
+.btn{border:1px solid var(--line);background:var(--sheet);border-radius:8px;padding:7px 12px}
+.btn:hover{border-color:var(--ink2)}
+.btn.primary{background:var(--present);border-color:var(--present);color:#fff;font-weight:500}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+input[type=text],input[type=date],input[type=number],select,textarea{border:1px solid var(--line);background:#fff;border-radius:8px;padding:7px 9px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:12.5px;color:var(--ink2)}
+.field input,.field select{color:var(--ink);font-size:14px}
 
-        .dept-badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
-        .dept-מפל״ג { background: #fee2e2; color: #991b1b; }
-        .dept-אנוח { background: #fef3c7; color: #92400e; }
-        .dept-חימוש { background: #d1fae5; color: #065f46; }
-        .dept-לוגיסטיקה { background: #e0e7ff; color: #3730a3; }
-        .dept-מטבח { background: #fae8ff; color: #86198f; }
-        .dept-רכב { background: #ccfbf1; color: #115e59; }
-        .dept-שלישות { background: #f3f4f6; color: #1f2937; }
+/* ניווט ימים */
+.daynav{display:flex;align-items:center;gap:6px;margin-bottom:12px}
+.daynav .lbl{font-size:18px;font-weight:700;min-width:170px;text-align:center}
+.daynav .lbl small{display:block;font-size:12px;font-weight:400;color:var(--ink2)}
 
-        select.status-select { padding: 4px 8px; border-radius: 6px; font-size: 12px; border: none; font-weight: 500; cursor: pointer; }
-        .status-נוכח { background: #d1fae5; color: #065f46; }
-        .status-בבית { background: #dbeafe; color: #1e40af; }
-        .status-מחלה { background: #fef3c7; color: #92400e; }
-        .status-נפקד { background: #ffe4e6; color: #9f1239; }
-        .status-דרך { background: #f3e8ff; color: #6b21a8; }
+/* תמונת מצב */
+.figs{display:flex;gap:6px;flex-wrap:wrap}
+.fig{flex:1;min-width:92px;border:0;border-radius:8px;padding:10px 12px;text-align:right;background:var(--soft)}
+.fig .n{font-size:30px;font-weight:700;line-height:1}
+.fig .t{font-size:12px;color:var(--ink2);margin-top:4px}
+.fig.on{outline:2px solid var(--ink)}
+.fig.base .n{color:var(--present)} .fig.home .n{color:var(--home)} .fig.exc .n{color:var(--sick)} .fig.none .n{color:var(--empty)}
+.moves{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.moves h3{font-size:13px;margin:0 0 6px;font-weight:500}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{background:var(--soft);border-radius:12px;padding:3px 9px;font-size:12px}
+.chip em{font-style:normal;color:var(--ink2);margin-right:4px}
 
-        footer { background: white; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 13px; color: #64748b; }
-        .end-line-badge { background: #e11d48; color: white; font-size: 10px; padding: 2px 4px; border-radius: 4px; display: inline-block; margin-right: 4px; }
-    </style>
+/* מסננים */
+.filters{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.fchip{border:1px solid var(--line);background:var(--sheet);border-radius:16px;padding:5px 11px;font-size:13px}
+.fchip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.search{flex:1;min-width:140px}
+
+/* רשימת חיילים */
+.dept{margin-bottom:14px}
+.dept-h{display:flex;justify-content:space-between;align-items:baseline;padding:6px 4px;border-bottom:2px solid var(--ink)}
+.dept-h b{font-size:15px}
+.dept-h span{font-size:12.5px;color:var(--ink2)}
+.dept-h span.low{color:var(--sick);font-weight:700}
+.sol{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--soft)}
+.sol input[type=checkbox]{width:20px;height:20px;accent-color:var(--ink)}
+.sol .who{flex:1;min-width:0}
+.sol .who b{font-weight:500;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sol .who small{color:var(--ink2);font-size:12px}
+.pill{border:0;border-radius:16px;padding:6px 12px;font-size:13px;font-weight:500;min-width:96px;white-space:nowrap}
+.s-present{background:var(--present-l);color:var(--present)}
+.s-home{background:var(--home-l);color:var(--home)}
+.s-out{background:var(--out-l);color:#7A5410}
+.s-in{background:var(--in-l);color:#555F1D}
+.s-duty{background:var(--duty-l);color:var(--duty)}
+.s-sick{background:var(--sick-l);color:var(--sick)}
+.s-awol{background:var(--awol);color:#fff}
+.s-none{background:#fff;color:var(--ink2);border:1px dashed var(--line)}
+.gtag{display:inline-block;font-size:11px;border:1px solid var(--line);border-radius:4px;padding:0 5px;margin-right:4px;color:var(--ink2)}
+
+.bulk{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--ink);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center;justify-content:center}
+.bulk .btn{border-color:#4A5743;background:transparent;color:#fff}
+.bulk .btn.primary{background:#9FC27F;border-color:#9FC27F;color:var(--ink)}
+
+/* לוח */
+.gridwrap{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--sheet);max-height:70vh}
+table.g{border-collapse:separate;border-spacing:0}
+table.g th,table.g td{padding:0;border-bottom:1px solid var(--soft)}
+table.g thead th{position:sticky;top:0;background:var(--sheet);z-index:2;font-weight:500;font-size:11px;color:var(--ink2);padding:6px 2px;min-width:34px;text-align:center}
+table.g thead th b{display:block;font-size:13px;color:var(--ink)}
+table.g thead th.we b{color:var(--sick)}
+table.g thead th.today{background:#E9E1C6}
+table.g .nm{position:sticky;right:0;background:var(--sheet);z-index:1;text-align:right;padding:4px 10px;white-space:nowrap;font-weight:500;min-width:140px;border-left:1px solid var(--line)}
+table.g thead .nm{z-index:3}
+table.g .nm small{display:block;font-weight:400;color:var(--ink2);font-size:11px}
+table.g .dsep td{background:var(--soft);font-weight:700;font-size:12px;padding:4px 10px;position:sticky;right:0}
+.gc{width:32px;height:30px;border:0;border-radius:4px;margin:2px;font-size:12px;font-weight:700;padding:0}
+td.tcol{background:#F4EFDD}
+table.g tfoot td{position:sticky;bottom:0;background:var(--sheet);font-weight:700;text-align:center;font-size:12px;padding:6px 0;border-top:2px solid var(--ink)}
+table.g tfoot td.low{color:var(--sick)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--ink2)}
+.legend i{display:inline-block;width:20px;height:16px;border-radius:3px;margin-left:4px;vertical-align:-3px;font-style:normal;font-size:10px;text-align:center;line-height:16px;font-weight:700}
+
+/* שיבוץ */
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+table.t{width:100%;border-collapse:collapse}
+table.t th{text-align:right;font-weight:500;color:var(--ink2);font-size:12px;padding:6px;border-bottom:1px solid var(--line)}
+table.t td{padding:5px 6px;border-bottom:1px solid var(--soft)}
+table.t td.c{text-align:center}
+tr.dirty td{background:#FFF6DA}
+.sbox{max-height:520px;overflow:auto}
+
+/* נתונים */
+.strip{overflow-x:auto}
+.sg{display:grid;gap:3px;align-items:center;min-width:max-content}
+.sg .l{font-weight:500;padding-left:10px;white-space:nowrap;font-size:13px}
+.sg .l small{display:block;color:var(--ink2);font-weight:400;font-size:11px}
+.sg .dh{font-size:10.5px;color:var(--ink2);text-align:center;line-height:1.2}
+.sg .dh b{display:block;font-size:12px;color:var(--ink);font-weight:500}
+.sg .dh.we b{color:var(--sick)}
+.sc{height:22px;border:0;border-radius:3px;padding:0}
+.sc.p{background:var(--present)} .sc.h{background:var(--home)}
+.sc.o{background:repeating-linear-gradient(135deg,var(--home) 0 4px,var(--out) 4px 8px)}
+.sc.i{background:repeating-linear-gradient(135deg,var(--present) 0 4px,var(--out) 4px 8px)}
+.sc.x{background:var(--line)}
+.sel{box-shadow:0 0 0 2px var(--ink)}
+.cnt{font-size:11.5px;text-align:center;font-weight:500;border:0;background:transparent;padding:3px 0;border-radius:3px}
+.cnt.low{background:var(--sick-l);color:var(--sick)}
+.dbar{position:relative;display:flex;height:12px;border-radius:3px;overflow:hidden;background:var(--soft);min-width:120px}
+.dbar i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+.pct.low{color:var(--sick);font-weight:700}
+.chartbox{height:260px;position:relative}
+.log li{padding:6px 0;border-bottom:1px solid var(--soft);font-size:13px;list-style:none}
+.log ul{padding:0;margin:0;max-height:380px;overflow:auto}
+.log small{color:var(--ink2)}
+
+/* חלונית עדכון */
+.scrim{position:fixed;inset:0;background:rgba(30,38,25,.45);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--sheet);width:100%;max-width:520px;border-radius:14px 14px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px));max-height:90vh;overflow:auto}
+@media(min-width:700px){.scrim{align-items:center}.sheet{border-radius:14px}}
+.sheet h3{margin:0 0 2px;font-size:17px}
+.stgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+.stgrid .pill{padding:12px;font-size:14px;width:100%}
+.stgrid .pill.cur{outline:2px solid var(--ink);outline-offset:1px}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;z-index:60;font-size:13.5px;max-width:92vw;box-shadow:0 6px 20px rgba(0,0,0,.2)}
+.toast.err{background:var(--sick)}
+.err{background:var(--sick-l);color:var(--sick);padding:14px;border-radius:8px}
+@media(max-width:760px){.cols2,.moves{grid-template-columns:1fr}.daynav .lbl{min-width:0;flex:1}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <div>
-                <h1>מערכת נוכחות פלוגתית</h1>
-                <p class="subtitle">תקופת קו: 18.10.2026 - 15.12.2026 | סוף קו: 03.12.2026</p>
-            </div>
-            <div class="btn-group">
-                <button class="btn-emerald" onclick="exportToCSV()">ייצוא ל-CSV</button>
-                <button class="btn-rose" onclick="resetData()">איפוס נתונים</button>
-            </div>
-        </div>
-    </header>
+<header class="top">
+  <div class="top-row">
+    <h1>סבבי יציאות</h1>
+    <span class="sync" id="sync">טוען…</span>
+    <button class="iconbtn" onclick="refresh()" aria-label="רענון">↻</button>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+</header>
+<main id="main"><div class="muted">טוען נתונים מהגיליון…</div></main>
+<div id="overlay"></div>
 
-    <section class="stats-bar">
-        <div class="stats-container">
-            <div class="stat-card indigo">
-                <span class="stat-label">סך חיילים בסד"כ</span>
-                <span id="totalSoldiers" class="stat-val">0</span>
-            </div>
-            <div class="stat-card emerald">
-                <span class="stat-label">נוכחים היום</span>
-                <span id="presentToday" class="stat-val">0</span>
-            </div>
-            <div class="stat-card amber">
-                <span class="stat-label">בבית / חופשה</span>
-                <span id="atHomeToday" class="stat-val">0</span>
-            </div>
-            <div class="stat-card rose">
-                <span class="stat-label">נפקדים / מחלה</span>
-                <span id="issuesToday" class="stat-val">0</span>
-            </div>
-        </div>
+<script>
+/* ───────── מצב ───────── */
+const KEY = {'נוכח':'present','בדרך מהבית':'in','בדרך הביתה':'out','בבית':'home','תפקיד מחוץ ליחידה':'duty','מחלה':'sick','נפקד':'awol'};
+const CODE = {'נוכח':'נ','בדרך מהבית':'ח','בדרך הביתה':'י','בבית':'ב','תפקיד מחוץ ליחידה':'ת','מחלה':'מ','נפקד':'!'};
+const BASE = ['נוכח','בדרך מהבית'], HOME = ['בבית','בדרך הביתה'], EXC = ['תפקיד מחוץ ליחידה','מחלה','נפקד'];
+const DOW = ['א','ב','ג','ד','ה','ו','ש'];
+const TABS = [['today','היום'],['grid','לוח'],['analytics','ניתוח ודיאגרמות'],['soldier','כרטיס אישי'],['assign','שיבוץ והגדרות'],['data','נתונים ויומן']];
+let D = null, tab = 'today', di = 0, dept = '', q = '', cat = '', selMode = false, sel = new Set();
+let gridStart = null, gridDept = '', gridGroup = '', selectedSoldierIdx = 0, pending = 0, dirtyAssign = {}, charts = {}, lastSync = null, picker = null;
+
+/* ───────── שרת ───────── */
+function call(fn, ...args){
+  return new Promise((res, rej) => {
+    if (typeof google === 'undefined' || !google.script) return rej(new Error('האפליקציה רצה מחוץ ל-Google Apps Script'));
+    google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](...args);
+  });
+}
+async function mutate(fn, args, okMsg){
+  pending++; syncLabel();
+  try {
+    const data = await call(fn, ...args);
+    setData(data);
+    const r = data.result;
+    if (r && r.conflicts && r.conflicts.length) toast(`נשמרו ${r.applied}. לא נשמרו ${r.conflicts.length}: ` + r.conflicts.slice(0,3).map(c=>c.name+' – '+c.reason).join(' · '), true);
+    else if (okMsg) toast(typeof okMsg === 'function' ? okMsg(r) : okMsg);
+  } catch(e){ toast(e.message || String(e), true); await refresh(true); }
+  finally { pending--; syncLabel(); }
+}
+async function refresh(silent){
+  try { setData(await call('getAppData')); if(!silent) toast('הנתונים עודכנו מהגיליון'); }
+  catch(e){ if(!D) document.getElementById('main').innerHTML = `<div class="err">${esc(e.message||e)}</div>`; else toast(e.message||String(e), true); }
+}
+function setData(data){
+  const first = !D;
+  D = data; lastSync = new Date();
+  if (first){
+    const t = D.dates.indexOf(D.today);
+    di = t >= 0 ? t : (D.today < D.dates[0] ? 0 : D.dates.length - 1);
+    gridStart = Math.max(0, di - 3);
+  }
+  di = Math.min(di, D.dates.length - 1);
+  syncLabel(); render();
+}
+function syncLabel(){
+  const el = document.getElementById('sync');
+  if (pending){ el.textContent = 'שומר בגיליון…'; el.className = 'sync saving'; return; }
+  el.className = 'sync';
+  el.textContent = lastSync ? 'מסונכרן ' + lastSync.toLocaleTimeString('he-IL',{hour:'2-digit',minute:'2-digit'}) : '';
+}
+setInterval(() => { if (!document.hidden && !pending && !picker && !Object.keys(dirtyAssign).length && D) refresh(true); }, 60000);
+
+/* ───────── עזרים ───────── */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function wd(iso){return new Date(iso+'T00:00:00Z').getUTCDay()}
+function dm(iso){const p=iso.split('-');return p[2]+'.'+p[1]}
+function longDay(iso){return `יום ${DOW[wd(iso)]}' ${dm(iso)}`}
+function pct(a,b){return b?Math.round(a/b*100):0}
+function stClass(s){return 's-' + (KEY[s] || 'none')}
+function catOf(s){return BASE.includes(s)?'base':HOME.includes(s)?'home':EXC.includes(s)?'exc':'none'}
+function toast(msg, err){
+  const t = document.createElement('div'); t.className = 'toast' + (err?' err':''); t.textContent = msg;
+  document.body.appendChild(t); setTimeout(()=>t.remove(), err?6000:2600);
+}
+function dayStats(i, list){
+  const s = {base:0,home:0,exc:0,none:0,leaving:[],returning:[]};
+  (list||D.soldiers).forEach(x=>{ const st=x.st[i]; s[catOf(st)]++; if(st==='בדרך הביתה')s.leaving.push(x); if(st==='בדרך מהבית')s.returning.push(x); });
+  return s;
+}
+function lowDept(base,total){return D.settings.minPct && total && base/total < D.settings.minPct}
+
+/* ───────── ניווט ───────── */
+function renderTabs(){
+  document.getElementById('tabs').innerHTML = TABS.map(([k,l])=>`<button role="tab" aria-selected="${tab===k}" onclick="go('${k}')">${l}</button>`).join('');
+}
+function go(k){ tab=k; selMode=false; sel.clear(); render(); window.scrollTo(0,0); }
+function render(){
+  renderTabs();
+  if (!D) return;
+  const m = document.getElementById('main');
+  Object.values(charts).forEach(ch => ch.destroy()); charts = {};
+  m.innerHTML = tab==='today' ? viewToday() : tab==='grid' ? viewGrid() : tab==='analytics' ? viewAnalytics() : tab==='soldier' ? viewSoldierCard() : tab==='assign' ? viewAssign() : viewData();
+  if (tab==='data' || tab==='analytics' || tab==='soldier') drawCharts();
+  renderBulk();
+}
+function setDay(i){ di=Math.max(0,Math.min(D.dates.length-1,i)); render(); }
+function dayNav(){
+  const t = D.dates.indexOf(D.today);
+  return `<div class="daynav">
+    <button class="btn" onclick="setDay(di-1)" aria-label="יום קודם">›</button>
+    <div class="lbl">${longDay(D.dates[di])}<small>${D.dates[di]===D.today?'היום':D.dates[di].slice(0,4)}</small></div>
+    <button class="btn" onclick="setDay(di+1)" aria-label="יום הבא">‹</button>
+    ${t>=0 && t!==di ? `<button class="btn" onclick="setDay(${t})">היום</button>`:''}
+  </div>`;
+}
+
+/* ───────── היום ───────── */
+function viewToday(){
+  const s = dayStats(di);
+  const fig = (k,n,t) => `<button class="fig ${k} ${cat===k?'on':''}" onclick="cat=cat==='${k}'?'':'${k}';render()"><div class="n">${n}</div><div class="t">${t}</div></button>`;
+  const chips = arr => arr.length ? `<div class="chips">${arr.map(x=>`<span class="chip">${esc(x.name)}<em>${esc(x.dept)}</em></span>`).join('')}</div>` : '<div class="muted">אין</div>';
+  let list = D.soldiers.map((x,i)=>({...x,i}));
+  if (dept) list = list.filter(x=>x.dept===dept);
+  if (cat) list = list.filter(x=>catOf(x.st[di])===cat);
+  if (q) list = list.filter(x=>x.name.includes(q) || x.role.includes(q));
+  const groups = D.depts.filter(d=>!dept||d===dept).map(d=>{
+    const all = D.soldiers.filter(x=>x.dept===d), rows = list.filter(x=>x.dept===d);
+    if (!rows.length) return '';
+    const b = all.filter(x=>BASE.includes(x.st[di])).length;
+    return `<section class="dept"><div class="dept-h"><b>${esc(d)}</b><span class="${lowDept(b,all.length)?'low':''}">${b}/${all.length} בבסיס</span></div>
+      ${rows.map(x=>`<div class="sol">
+        ${selMode?`<input type="checkbox" ${sel.has(x.i)?'checked':''} onchange="toggleSel(${x.i})" aria-label="בחירת ${esc(x.name)}">`:''}
+        <div class="who"><b>${esc(x.name)}</b><small>${esc(x.role)}${x.group?`<span class="gtag">${esc(x.group)}</span>`:''}</small></div>
+        <button class="pill ${stClass(x.st[di])}" onclick="openPicker([${x.i}],${di})">${esc(x.st[di]||'לא מעודכן')}</button>
+      </div>`).join('')}</section>`;
+  }).join('');
+  return `${dayNav()}
+  <div class="card">
+    <div class="figs">${fig('base',s.base,'בבסיס')}${fig('home',s.home,'בבית')}${fig('exc',s.exc,'חריגים')}${s.none?fig('none',s.none,'לא מעודכן'):''}</div>
+    <div class="moves"><div><h3>יוצאים הביתה · ${s.leaving.length}</h3>${chips(s.leaving)}</div><div><h3>חוזרים לבסיס · ${s.returning.length}</h3>${chips(s.returning)}</div></div>
+  </div>
+  <div class="filters">
+    <button class="fchip" aria-pressed="${!dept}" onclick="dept='';render()">הכול</button>
+    ${D.depts.map((d,k)=>`<button class="fchip" aria-pressed="${dept===d}" onclick="dept=D.depts[${k}];render()">${esc(d)}</button>`).join('')}
+  </div>
+  <div class="filters">
+    <input type="text" class="search" placeholder="חיפוש שם או תפקיד" value="${esc(q)}" oninput="q=this.value;clearTimeout(window._qt);window._qt=setTimeout(()=>{render();const e=document.querySelector('.search');e.focus();e.setSelectionRange(e.value.length,e.value.length)},250)">
+    <button class="btn ${selMode?'dark':''}" onclick="selMode=!selMode;sel.clear();render()">${selMode?'ביטול בחירה':'בחירה מרובה'}</button>
+    ${selMode?`<button class="btn" onclick="selectVisible()">בחר את המוצגים</button>`:''}
+  </div>
+  ${groups || '<div class="muted">אין חיילים שתואמים לסינון</div>'}`;
+}
+function toggleSel(i){ sel.has(i)?sel.delete(i):sel.add(i); renderBulk(); }
+function selectVisible(){
+  D.soldiers.forEach((x,i)=>{ if((!dept||x.dept===dept)&&(!cat||catOf(x.st[di])===cat)&&(!q||x.name.includes(q)||x.role.includes(q))) sel.add(i); });
+  render();
+}
+function renderBulk(){
+  let b = document.getElementById('bulk');
+  if (!(tab==='today' && selMode)){ if(b) b.remove(); return; }
+  if (!b){ b=document.createElement('div'); b.id='bulk'; b.className='bulk'; document.body.appendChild(b); }
+  b.innerHTML = `<span>${sel.size} נבחרו</span><button class="btn primary" ${sel.size?'':'disabled'} onclick="openPicker([...sel],di)">עדכון סטטוס</button><button class="btn" onclick="sel.clear();render()">ניקוי</button>`;
+}
+
+/* ───────── חלונית עדכון ───────── */
+function openPicker(idxs, i){
+  picker = {idxs, i};
+  const xs = idxs.map(k=>D.soldiers[k]);
+  const cur = xs.length===1 ? xs[0].st[i] : null;
+  const title = xs.length===1 ? esc(xs[0].name) : `${xs.length} חיילים`;
+  const ends = D.dates.slice(i, i+21).map((d,k)=>`<option value="${i+k}">${k===0?'יום זה בלבד':'עד '+longDay(d)}</option>`).join('');
+  document.getElementById('overlay').innerHTML = `<div class="scrim" onclick="if(event.target===this)closePicker()">
+    <div class="sheet" role="dialog" aria-label="עדכון סטטוס">
+      <h3>${title}</h3><div class="muted">${longDay(D.dates[i])}${xs.length===1&&xs[0].group?' · סבב '+esc(xs[0].group):''}</div>
+      <div class="row" style="margin-top:12px"><label class="field" style="flex:1">טווח<select id="pEnd">${ends}</select></label></div>
+      <label class="field" style="margin-top:8px">הערה (נשמרת ביומן ובתא)<input type="text" id="pNote" placeholder="לא חובה"></label>
+      <div class="stgrid">${D.statuses.map(s=>`<button class="pill ${stClass(s)}${s===cur?'cur':''}" onclick="applyPick('${s}')">${s}</button>`).join('')}
+        <button class="pill s-none" onclick="applyPick('')">ניקוי</button></div>
+      <button class="btn" style="width:100%" onclick="closePicker()">סגירה</button>
+    </div></div>`;
+}
+function closePicker(){ picker=null; document.getElementById('overlay').innerHTML=''; }
+function applyPick(to){
+  const {idxs, i} = picker;
+  const endI = +document.getElementById('pEnd').value, note = document.getElementById('pNote').value.trim();
+  const changes = [];
+  idxs.forEach(k=>{ const x=D.soldiers[k]; for(let j=i;j<=endI;j++){ if(x.st[j]!==to){ changes.push({name:x.name, iso:D.dates[j], from:x.st[j], to}); x.st[j]=to; } } });
+  closePicker(); if (selMode){ selMode=false; sel.clear(); }
+  render();
+  if (!changes.length) return;
+  mutate('setStatuses', [changes, note, idxs.length>1?'עדכון קבוצתי':'עדכון ידני'], r=>`נשמרו ${r.applied} עדכונים בגיליון`);
+}
+
+/* ───────── לוח ───────── */
+function viewGrid(){
+  const W = 14, s0 = Math.max(0, Math.min(gridStart, D.dates.length-W)), idx = [];
+  for (let j=s0;j<Math.min(D.dates.length,s0+W);j++) idx.push(j);
+  const groupOpts = D.groups.map(g=>g.name).concat(['קבוע בבסיס','ללא סבב']);
+  let rows = D.soldiers.map((x,i)=>({...x,i})).filter(x=>(!gridDept||x.dept===gridDept)&&(!gridGroup||x.group===gridGroup));
+  let body = '', lastDept = null;
+  rows.forEach(x=>{
+    if (x.dept!==lastDept){ lastDept=x.dept; body += `<tr class="dsep"><td colspan="${idx.length+1}">${esc(x.dept)}</td></tr>`; }
+    body += `<tr><td class="nm">${esc(x.name)}<small>${esc(x.role)}${x.group?' · '+esc(x.group):''}</small></td>` +
+      idx.map(j=>`<td class="${D.dates[j]===D.today?'tcol':''}"><button class="gc ${stClass(x.st[j])}" title="${esc(x.st[j]||'לא מעודכן')}" onclick="openPicker([${x.i}],${j})">${CODE[x.st[j]]||''}</button></td>`).join('') + '</tr>';
+  });
+  const foot = idx.map(j=>{ const b = rows.filter(x=>BASE.includes(x.st[j])).length; return `<td class="${lowDept(b,rows.length)?'low':''}">${b}</td>`; }).join('');
+  return `<div class="filters">
+      <button class="btn" onclick="gridStart=Math.max(0,${s0}-7);render()">› שבוע קודם</button>
+      <button class="btn" onclick="gridStart=${s0}+7;render()">שבוע הבא ‹</button>
+      <select onchange="gridDept=this.value;render()"><option value="">כל המחלקות</option>${D.depts.map(d=>`<option ${gridDept===d?'selected':''}>${esc(d)}</option>`).join('')}</select>
+      <select onchange="gridGroup=this.value;render()"><option value="">כל הסבבים</option>${groupOpts.map(g=>`<option value="${esc(g)}" ${gridGroup===g?'selected':''}>${esc(g)}</option>`).join('')}</select>
+    </div>
+    <div class="gridwrap"><table class="g">
+      <thead><tr><th class="nm">חייל</th>${idx.map(j=>`<th class="${wd(D.dates[j])>=5?'we':''}${D.dates[j]===D.today?'today':''}"><b>${dm(D.dates[j])}</b>${DOW[wd(D.dates[j])]}</th>`).join('')}</tr></thead>
+      <tbody>${body}</tbody>
+      <tfoot><tr><td class="nm">בבסיס</td>${foot}</tr></tfoot>
+    </table></div>
+    <div class="legend">${D.statuses.map(s=>`<span><i class="${stClass(s)}">${CODE[s]}</i>${s}</span>`).join('')}</div>`;
+}
+
+/* ───────── ניתוח ודיאגרמות (Analytics) ───────── */
+function viewAnalytics(){
+  return `<div class="cols2">
+    <section class="card">
+      <h2>מגמת נוכחות ימית (בבסיס מול בית)</h2>
+      <div class="muted" style="margin-bottom:8px">מעקב לאורך כל ימי הפעילות בקו</div>
+      <div class="chartbox"><canvas id="chTrend"></canvas></div>
     </section>
+    <section class="card">
+      <h2>התפלגות סטטוסים כוללת</h2>
+      <div class="muted" style="margin-bottom:8px">סיכום משוקלל של כלל הסטכוסים ביחידה</div>
+      <div class="chartbox"><canvas id="chPie"></canvas></div>
+    </section>
+  </div>
+  <section class="card">
+    <h2>אחוז נוכחות ממוצע לפי מחלקה</h2>
+    <div class="muted" style="margin-bottom:8px">השוואת עמידה ביעדי הנוכחות המחלקתיים לאורך הקו</div>
+    <div class="chartbox" style="height:280px"><canvas id="chDepts"></canvas></div>
+  </section>`;
+}
 
-    <main>
-        <div class="controls">
-            <div style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%; max-width: 600px;">
-                <input type="text" id="searchInput" placeholder="חיפוש חייל לפי שם..." oninput="renderTable()" style="flex: 1; min-width: 200px;">
-                <select id="deptFilter" onchange="renderTable()">
-                    <option value="">כל המחלקות</option>
-                    <option value="מפל״ג">מפל״ג</option>
-                    <option value="אנוח">אנוח</option>
-                    <option value="חימוש">חימוש</option>
-                    <option value="לוגיסטיקה">לוגיסטיקה</option>
-                    <option value="מטבח">מטבח</option>
-                    <option value="רכב">רכב</option>
-                    <option value="שלישות">שלישות</option>
-                </select>
-            </div>
-            <div style="font-size: 13px; color: #64748b;">
-                * הנתונים נשמרים אוטומטית בדפדפן (LocalStorage)
-            </div>
+/* ───────── כרטיס אישי לחייל (Soldier Card) ───────── */
+function viewSoldierCard(){
+  const s = D.soldiers[selectedSoldierIdx] || D.soldiers[0];
+  let daysBase = 0, daysHome = 0, daysExc = 0;
+  s.st.forEach(st => {
+    if (BASE.includes(st)) daysBase++;
+    else if (HOME.includes(st)) daysHome++;
+    else if (EXC.includes(st)) daysExc++;
+  });
+  const soldierRows = D.soldiers.map((x, i)=>`<option value="${i}" ${i===selectedSoldierIdx?'selected':''}>${esc(x.name)} (${esc(x.dept)})</option>`).join('');
+  const historyRows = D.dates.map((d, j)=>`<tr><td>${longDay(d)}</td><td><span class="pill ${stClass(s.st[j])}">${esc(s.st[j]||'לא מעודכן')}</span></td></tr>`).join('');
+
+  return `<div class="filters">
+    <label class="field" style="flex:1">בחר חייל לצפייה אישית:
+      <select onchange="selectedSoldierIdx=+this.value;render()">${soldierRows}</select>
+    </label>
+  </div>
+  <div class="cols2">
+    <section class="card">
+      <h2>פרטי חייל</h2>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px">${esc(s.name)}</div>
+      <div class="muted" style="margin-bottom:4px">תפקיד/מספר אישי: ${esc(s.role||'לא צוין')}</div>
+      <div class="muted" style="margin-bottom:4px">מחלקה: ${esc(s.dept)}</div>
+      <div class="muted" style="margin-bottom:12px">סבב: ${esc(s.group||'ללא')} ${s.shift?` · היסט: ${s.shift} ימים`:''}</div>
+      <div class="figs" style="margin-top:12px">
+        <div class="fig base"><div class="n">${daysBase}</div><div class="t">ימים בבסיס</div></div>
+        <div class="fig home"><div class="n">${daysHome}</div><div class="t">ימים בבית</div></div>
+        <div class="fig exc"><div class="n">${daysExc}</div><div class="t">חריגים</div></div>
+      </div>
+    </section>
+    <section class="card">
+      <h2>התפלגות אישית</h2>
+      <div class="chartbox"><canvas id="chSoldierPie"></canvas></div>
+    </section>
+  </div>
+  <section class="card">
+    <h2>היסטוריית סטטוסים מלאה לקו</h2>
+    <div class="sbox" style="max-height:300px">
+      <table class="t"><thead><tr><th>תאריך</th><th>סטטוס</th></tr></thead><tbody>${historyRows}</tbody></table>
+    </div>
+  </section>`;
+}
+
+/* ───────── שיבוץ והגדרות ───────── */
+function viewAssign(){
+  const S = D.settings, gopts = D.groups.map(g=>g.name).concat(['קבוע בבסיס','ללא סבב']);
+  const dirtyN = Object.keys(dirtyAssign).length;
+  const split = D.depts.map(d=>`<tr><td>${esc(d)}</td>${D.groups.map(g=>`<td class="c">${D.soldiers.filter(x=>x.dept===d&&x.group===g.name).length}</td>`).join('')}<td class="c">${D.soldiers.filter(x=>x.dept===d&&!D.groups.some(g=>g.name===x.group)).length}</td></tr>`).join('');
+  const sols = D.soldiers.map((x,i)=>{
+    const dv = dirtyAssign[x.name] || {group:x.group, shift:x.shift};
+    return `<tr class="${dirtyAssign[x.name]?'dirty':''}"><td>${esc(x.name)}<div class="muted">${esc(x.dept)}</div></td>
+      <td><select onchange="markAssign(${i},'group',this.value)">${gopts.map(g=>`<option ${dv.group===g?'selected':''}>${esc(g)}</option>`).join('')}</select></td>
+      <td><input type="number" style="width:70px" value="${dv.shift||0}" onchange="markAssign(${i},'shift',this.value)" aria-label="היסט אישי"></td></tr>`;
+  }).join('');
+  const names = D.soldiers.map(x=>`<option>${esc(x.name)}</option>`).join('');
+  return `<div class="cols2">
+    <div>
+      <section class="card"><h2>בניית לוח סבבים</h2>
+        <div class="muted" style="margin-bottom:8px">ממלא את הלוח לפי השיבוץ. מחלה, נפקד ותפקיד מחוץ ליחידה לא נדרסים.</div>
+        <div class="row"><label class="field">החל מתאריך<input type="date" id="bFrom" value="${D.today}"></label>
+        <button class="btn primary" style="align-self:flex-end" onclick="buildRot()">בנה לוח</button></div>
+      </section>
+      <section class="card"><h2>החלפה בין חיילים</h2>
+        <div class="form">
+          <label class="field">חייל א<select id="swA">${names}</select></label>
+          <label class="field">חייל ב<select id="swB">${D.soldiers.map((x,k)=>`<option ${k===1?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label>
+          <label class="field">מתאריך<input type="date" id="swF" value="${D.dates[di]}"></label>
+          <label class="field">עד תאריך<input type="date" id="swT" value="${D.dates[Math.min(di+5,D.dates.length-1)]}"></label>
         </div>
-
-        <div class="table-container">
-            <table id="attendanceTable">
-                <thead>
-                    <tr id="headerRowDays"></tr>
-                    <tr id="headerRowDates"></tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-            </table>
+        <label class="field" style="margin-top:8px">הערה<input type="text" id="swN" placeholder="לא חובה"></label>
+        <button class="btn primary" style="margin-top:10px" onclick="doSwap()">בצע החלפה</button>
+      </section>
+      <section class="card"><h2>הגדרות</h2>
+        <div class="form">
+          <label class="field">יציאה ראשונה<input type="date" id="sF" value="${S.firstExit}"></label>
+          <label class="field">ימים בבסיס<input type="number" id="sB" min="2" value="${S.baseDays}"></label>
+          <label class="field">ימים בבית<input type="number" id="sH" min="2" value="${S.homeDays}"></label>
+          <label class="field">סוף קו<input type="date" id="sE" value="${S.end}"></label>
+          <label class="field">סף נוכחות למחלקה (%)<input type="number" id="sM" min="0" max="100" value="${Math.round(S.minPct*100)}"></label>
         </div>
-    </main>
+        <h2 style="margin-top:14px">סבבים</h2>
+        <table class="t" id="gtab"><thead><tr><th>שם</th><th>היסט מהיציאה הראשונה (ימים)</th><th></th></tr></thead><tbody>
+          ${D.groups.map(g=>`<tr><td><input type="text" value="${esc(g.name)}" style="width:90px"></td><td><input type="number" value="${g.offset}" style="width:80px"></td><td><button class="btn" onclick="this.closest('tr').remove()" aria-label="הסרת סבב">✕</button></td></tr>`).join('')}
+        </tbody></table>
+        <div class="row" style="margin-top:10px"><button class="btn" onclick="addGroupRow()">+ סבב</button><button class="btn primary" onclick="saveSet()">שמירת הגדרות</button></div>
+      </section>
+    </div>
+    <div>
+      <section class="card"><h2>פיזור לפי מחלקה</h2>
+        <table class="t"><thead><tr><th>מחלקה</th>${D.groups.map(g=>`<th style="text-align:center">סבב ${esc(g.name)}</th>`).join('')}<th style="text-align:center">אחר</th></tr></thead><tbody>${split}</tbody></table>
+      </section>
+      <section class="card"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">שיבוץ חיילים</h2>
+        <button class="btn primary" ${dirtyN?'':'disabled'} onclick="saveAssign()">שיבוץ${dirtyN?` (${dirtyN})`:''}</button></div>
+        <div class="muted" style="margin-bottom:6px">היסט אישי: ימים שבהם החייל זז ביחס לסבב שלו.</div>
+        <div class="sbox"><table class="t"><thead><tr><th>חייל</th><th>סבב</th><th>היסט</th></tr></thead><tbody>${sols}</tbody></table></div>
+      </section>
+    </div></div>`;
+}
+function markAssign(i,k,v){
+  const x = D.soldiers[i]; const cur = dirtyAssign[x.name] || {group:x.group, shift:x.shift};
+  cur[k] = k==='shift' ? (+v||0) : v;
+  if (cur.group===x.group && (+cur.shift||0)===(+x.shift||0)) delete dirtyAssign[x.name]; else dirtyAssign[x.name]=cur;
+  render();
+}
+function saveAssign(){
+  const rows = Object.entries(dirtyAssign).map(([name,v])=>({name, group:v.group, shift:v.shift}));
+  dirtyAssign = {};
+  mutate('saveAssignments',[rows], `השיבוץ נשמר (${rows.length}). כדי שהלוח יתעדכן — "בנה לוח".`);
+}
+function buildRot(){
+  const f = document.getElementById('bFrom').value;
+  if (!f || !confirm(`לבנות את הלוח החל מ-${dm(f)}? סטטוסי סבב מתאריך זה יחושבו מחדש.`)) return;
+  mutate('buildRotationApi',[f], r=>`הלוח נבנה: ${r.changed} תאים עודכנו, ${r.kept} חריגים נשמרו`);
+}
+function doSwap(){
+  const a=swA.value, b=swB.value, f=swF.value, t=swT.value;
+  if (a===b) return toast('בחר שני חיילים שונים', true);
+  if (!f||!t||t<f) return toast('טווח תאריכים לא תקין', true);
+  mutate('swapSoldiers',[a,b,f,t,swN.value.trim()], r=>`ההחלפה נשמרה (${r.applied} תאים)`);
+}
+function addGroupRow(){
+  document.querySelector('#gtab tbody').insertAdjacentHTML('beforeend',`<tr><td><input type="text" style="width:90px"></td><td><input type="number" value="0" style="width:80px"></td><td><button class="btn" onclick="this.closest('tr').remove()">✕</button></td></tr>`);
+}
+function saveSet(){
+  const groups = [...document.querySelectorAll('#gtab tbody tr')].map(tr=>{const i=tr.querySelectorAll('input');return {name:i[0].value.trim(), offset:+i[1].value||0}}).filter(g=>g.name);
+  if (!groups.length) return toast('צריך לפחות סבב אחד', true);
+  const s = {firstExit:sF.value, baseDays:+sB.value, homeDays:+sH.value, end:sE.value, minPct:(+sM.value||0)/100, groups};
+  if (!s.firstExit || s.baseDays<2 || s.homeDays<2) return toast('בדוק תאריך יציאה וימי בסיס/בית', true);
+  mutate('saveSettings',[s],'ההגדרות נשמרו. כדי שהלוח יתעדכן — "בנה לוח".');
+}
 
-    <footer>
-        מערכת נוכחות פלוגתית מתקדמת | פותחה עבור ניהול קו 2026
-    </footer>
+/* ───────── נתונים ויומן ───────── */
+function viewData(){
+  const W = Math.min(28, D.dates.length), s0 = Math.max(0, Math.min(di-10, D.dates.length-W)), idx=[];
+  for (let j=s0;j<s0+W;j++) idx.push(j);
+  const pc = s => s==='נוכח'?'p':s==='בבית'?'h':s==='בדרך הביתה'?'o':s==='בדרך מהבית'?'i':'x';
+  let g = `<div class="sg" style="grid-template-columns:120px repeat(${W},26px)"><div></div>` +
+    idx.map(j=>`<div class="dh ${wd(D.dates[j])>=5?'we':''}"><b>${dm(D.dates[j]).slice(0,2)}</b>${D.dates[j]===D.today?'היום':DOW[wd(D.dates[j])]}</div>`).join('');
+  D.groups.forEach(gr=>{
+    const n = D.soldiers.filter(x=>x.group===gr.name).length;
+    g += `<div class="l">סבב ${esc(gr.name)}<small>${n} חיילים</small></div>` + idx.map(j=>`<button class="sc ${pc(gr.plan[j])} ${j===di?'sel':''}" title="${dm(D.dates[j])} ${esc(gr.plan[j]||'')}" onclick="setDay(${j})"></button>`).join('');
+  });
+  g += `<div class="l">בבסיס בפועל<small>מתוך ${D.soldiers.length}</small></div>` + idx.map(j=>{const b=dayStats(j).base;return `<button class="cnt ${lowDept(b,D.soldiers.length)?'low':''} ${j===di?'sel':''}" onclick="setDay(${j})">${b}</button>`}).join('') + '</div>';
 
-    <script>
-        const statuses = ["נוכח", "בדרך הביתה", "בדרך מהבית", "בבית", "נפקד", "תפקיד מחוץ ליחידה", "מחלה"];
+  const deptRows = D.depts.map(d=>{
+    const all = D.soldiers.filter(x=>x.dept===d), t=all.length;
+    const b = all.filter(x=>BASE.includes(x.st[di])).length, h = all.filter(x=>HOME.includes(x.st[di])).length, o=t-b-h;
+    return `<tr><td>${esc(d)}</td><td><div class="dbar"><span style="width:${b/t*100}%;background:var(--present)"></span><span style="width:${h/t*100}%;background:var(--home)"></span><span style="width:${o/t*100}%;background:var(--empty)"></span>${D.settings.minPct?`<i style="right:${D.settings.minPct*100}%"></i>`:''}</div></td>
+      <td class="c">${b}/${t}</td><td class="c pct ${lowDept(b,t)?'low':''}">${pct(b,t)}%</td></tr>`;
+  }).join('');
+  const log = D.log.map(l=>`<li><b>${esc(l.name||l.src)}</b> ${l.date?`<small>${esc(l.date)}</small> `:''}${l.from?esc(l.from)+' ← ':''}<b>${esc(l.to)}</b>${l.note?` <small>· ${esc(l.note)}</small>`:''}<br><small>${esc(l.at)} · ${esc(l.user)} · ${esc(l.src)}</small></li>`).join('');
+  return `${dayNav()}
+  <section class="card strip"><h2>מצב הסבבים</h2>${g}
+    <div class="legend"><span><i style="background:var(--present)"></i>בבסיס</span><span><i style="background:var(--home)"></i>בבית</span>
+    <span><i style="background:repeating-linear-gradient(135deg,var(--home) 0 3px,var(--out) 3px 6px)"></i>יום יציאה</span>
+    <span><i style="background:repeating-linear-gradient(135deg,var(--present) 0 3px,var(--out) 3px 6px)"></i>יום חזרה</span></div></section>
+  <div class="cols2">
+    <section class="card"><h2>מחלקות · ${longDay(D.dates[di])}</h2>
+      <table class="t"><thead><tr><th>מחלקה</th><th>בסיס / בית / אחר</th><th style="text-align:center">בבסיס</th><th style="text-align:center">%</th></tr></thead><tbody>${deptRows}</tbody></table></section>
+    <section class="card log"><h2>יומן שינויים</h2>${log?`<ul>${log}</ul>`:'<div class="muted">עוד אין שינויים</div>'}</section>
+  </div>
+  <section class="card"><h2>בסיס מול בית לאורך התקופה</h2><div class="chartbox"><canvas id="ch"></canvas></div></section>`;
+}
 
-        const soldiers = [
-            { name: "אביב שיטרית", role: "מפל״ג | 8176265", dept: "מפל״ג" },
-            { name: "רגב גורן", role: "מפ״ם ב׳ | 5062763", dept: "מפל״ג" },
-            { name: "בן דוד גפני", role: "סמ״פם | 5410935", dept: "מפל״ג" },
-            { name: "אוריאן דנן", role: "נגד משמעת | 6110296", dept: "מפל״ג" },
-            { name: "נתן יחז ווייל", role: "אנוח | 5352285", dept: "אנוח" },
-            { name: "אלון שניידר", role: "אנוח | 5790248", dept: "אנוח" },
-            { name: "דולב הילל", role: "אנוח | 5862213", dept: "אנוח" },
-            { name: "אורי שטינמץ", role: "אנוח | 6085947", dept: "אנוח" },
-            { name: "אורי אבצוקר", role: "אנוח | 6865628", dept: "אנוח" },
-            { name: "יוסף חיי נשר", role: "אנוח | 7557524", dept: "אנוח" },
-            { name: "יוחננן סלם", role: "אנוח | 7579092", dept: "אנוח" },
-            { name: "אילון זינגר", role: "אנוח | 8012914", dept: "אנוח" },
-            { name: "שלמה מינס", role: "אנוח | 8109182", dept: "אנוח" },
-            { name: "בניה אל כהן", role: "אנוח | 8717405", dept: "אנוח" },
-            { name: "ליאל כלפה", role: "ק״חש | 8249586", dept: "חימוש" },
-            { name: "ולדיסלב חייבולין", role: "חימוש | 6005788", dept: "חימוש" },
-            { name: "לירן חלפון", role: "חימוש | 8620524", dept: "חימוש" },
-            { name: "בן שמואל אבוטבול", role: "חימוש | 8776212", dept: "חימוש" },
-            { name: "עיטם גבאי", role: "חימוש | 9079362", dept: "חימוש" },
-            { name: "בנימין אבדייב", role: "חימוש | 8871842", dept: "חימוש" },
-            { name: "אנטון אגייב", role: "נשק | 9170058", dept: "חימוש" },
-            { name: "רועי קורין", role: "קל״ג / רס״פ | 8436785", dept: "לוגיסטיקה" },
-            { name: "מיקוננט איינאו", role: "לוגיסטקה | 5331450", dept: "לוגיסטיקה" },
-            { name: "ניר אלמקייס", role: "לוגיסטיקה | 5885301", dept: "לוגיסטיקה" },
-            { name: "עלי ח'ניפס", role: "לוגיסטיקה | -", dept: "לוגיסטיקה" },
-            { name: "אלון הובר", role: "לוגיסטיקה | 7570011", dept: "לוגיסטיקה" },
-            { name: "לידור שמואל", role: "לוגיסטיקה | 8384752", dept: "לוגיסטיקה" },
-            { name: "מולה גטסאו", role: "לוגיסטיקה | 9305242", dept: "לוגיסטיקה" },
-            { name: "אילן סטפנוב", role: "רס״ר מטבח | 8508667", dept: "מטבח" },
-            { name: "נוריאל עמר", role: "מטבח | 7647556", dept: "מטבח" },
-            { name: "עמנואל יוחננוב", role: "מטבח | 8165768", dept: "מטבח" },
-            { name: "אריאל כהן חי", role: "מטבח | 8552740", dept: "מטבח" },
-            { name: "רועי טרם", role: "מטבח | 9043036", dept: "מטבח" },
-            { name: "אדר בן שבת", role: "מטבח | 9182003", dept: "מטבח" },
-            { name: "אתי בן שועה", role: "מטבח | 9350650", dept: "מטבח" },
-            { name: "עזאת קטימה", role: "ק.רכב | 7545742", dept: "רכב" },
-            { name: "אורי חודדה", role: "רכב | 5219134", dept: "רכב" },
-            { name: "שרף ביסאן", role: "רכב | 5293810", dept: "רכב" },
-            { name: "אורטל פוזניאק", role: "רכב | 5869246", dept: "רכב" },
-            { name: "ראזי פרחאת", role: "רכב | 8185770", dept: "רכב" },
-            { name: "כפיר דהן", role: "רכב | 8647221", dept: "רכב" },
-            { name: "יוסף חיים חסדאי", role: "רכב | 8878372", dept: "רכב" },
-            { name: "אושרי חי ארחיאל", role: "רכב | 9003039", dept: "רכב" },
-            { name: "אדם קילסוב", role: "רכב | 9048969", dept: "רכב" },
-            { name: "שי לב", role: "רכב | 9060023", dept: "רכב" },
-            { name: "עדן הלוי", role: "רכב | 9290091", dept: "רכב" },
-            { name: "בת אל בן אדרת", role: "רכב | 9295181", dept: "רכב" },
-            { name: "מוחמד סואעד", role: "רכב | 7721226", dept: "רכב" },
-            { name: "יעקב ליונגר", role: "רכב | 6903312", dept: "רכב" },
-            { name: "דניאל סעד", role: "רכב | 9018399", dept: "רכב" },
-            { name: "ציון גלעד", role: "שלישות | 5823561", dept: "שלישות" },
-            { name: "עידו מנור", role: "שלישות | 8021695", dept: "שלישות" },
-            { name: "ליהי גבאי", role: "שלישות | 8487921", dept: "שלישות" },
-            { name: "בר כהן", role: "שלישות | 8752131", dept: "שלישות" },
-            { name: "דניאל אקוקה", role: "שלישות | -", dept: "שלישות" },
-            { name: "קורל קדוש", role: "שלישות | -", dept: "שלישות" }
-        ];
+function drawCharts(){
+  if (typeof Chart==='undefined') return;
+  const st = D.dates.map((_,j)=>dayStats(j));
+  const c = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
 
-        const startDate = new Date(2026, 9, 18);
-        const endDate = new Date(2026, 11, 15);
-        const datesList = [];
-        const dayNames = ["יום א'", "יום ב'", "יום ג'", "יום ד'", "יום ה'", "יום ו'", "שבת"];
-
-        let curr = new Date(startDate);
-        while (curr <= endDate) {
-            datesList.push({
-                dateStr: curr.toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'}),
-                dayName: dayNames[curr.getDay()],
-                isEndLine: curr.toISOString().split('T')[0] === '2026-12-03'
-            });
-            curr.setDate(curr.getDate() + 1);
-        }
-
-        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || {};
-
-        function initApp() {
-            renderHeaders();
-            renderTable();
-            updateStats();
-        }
-
-        function renderHeaders() {
-            const rowDays = document.getElementById('headerRowDays');
-            const rowDates = document.getElementById('headerRowDates');
-
-            let htmlDays = `<th class="sticky-name">שם החייל</th><th>תפקיד</th><th>מחלקה</th>`;
-            let htmlDates = `<th class="sticky-name date-header">סה"כ נוכח</th><th class="date-header">-</th><th class="date-header">-</th>`;
-
-            datesList.forEach(d => {
-                const badge = d.isEndLine ? '<span class="end-line-badge">סוף קו</span>' : '';
-                htmlDays += `<th>${d.dayName} ${badge}</th>`;
-                htmlDates += `<th class="date-header" style="text-align:center;">${d.dateStr}</th>`;
-            });
-
-            rowDays.innerHTML = htmlDays;
-            rowDates.innerHTML = htmlDates;
-        }
-
-        function renderTable() {
-            const tbody = document.getElementById('tableBody');
-            const searchVal = document.getElementById('searchInput').value.toLowerCase();
-            const deptVal = document.getElementById('deptFilter').value;
-
-            let html = '';
-
-            soldiers.forEach((s, sIndex) => {
-                if (searchVal && !s.name.toLowerCase().includes(searchVal)) return;
-                if (deptVal && s.dept !== deptVal) return;
-
-                let presentCount = 0;
-                datesList.forEach((d, dIndex) => {
-                    if (attendanceData[`${sIndex}-${dIndex}`] === 'נוכח') presentCount++;
-                });
-
-                html += `<tr>
-                    <td class="sticky-name">${s.name}</td>
-                    <td style="color: #64748b; font-size: 12px;">${s.role}</td>
-                    <td><span class="dept-badge dept-${s.dept}">${s.dept}</span></td>
-                    <td style="text-align: center; font-weight: bold; color: #059669; background: #f8fafc;">${presentCount}</td>`;
-
-                datesList.forEach((d, dIndex) => {
-                    const val = attendanceData[`${sIndex}-${dIndex}`] || 'נוכח';
-                    let statusClass = 'status-נוכח';
-                    if (val === 'בבית') statusClass = 'status-בבית';
-                    else if (val === 'מחלה') statusClass = 'status-מחלה';
-                    else if (val === 'נפקד') statusClass = 'status-נפקד';
-                    else if (val.includes('דרך')) statusClass = 'status-דרך';
-
-                    html += `<td style="text-align: center;">
-                        <select onchange="updateCell(${sIndex}, ${dIndex}, this.value)" class="status-select ${statusClass}">`;
-                    statuses.forEach(st => {
-                        html += `<option value="${st}" ${val === st ? 'selected' : ''}>${st}</option>`;
-                    });
-                    html += `</select></td>`;
-                });
-
-                html += `</tr>`;
-            });
-
-            tbody.innerHTML = html;
-            document.getElementById('totalSoldiers').innerText = soldiers.length;
-        }
-
-        function updateCell(sIndex, dIndex, val) {
-            attendanceData[`${sIndex}-${dIndex}`] = val;
-            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
-            renderTable();
-            updateStats();
-        }
-
-        function updateStats() {
-            let present = 0;
-            let home = 0;
-            let issues = 0;
-            const todayIndex = 0;
-
-            soldiers.forEach((s, sIndex) => {
-                const val = attendanceData[`${sIndex}-${todayIndex}`] || 'נוכח';
-                if (val === 'נוכח') present++;
-                else if (val === 'בבית' || val.includes('דרך')) home++;
-                else if (val === 'נפקד' || val === 'מחלה') issues++;
-            });
-
-            document.getElementById('presentToday').innerText = present;
-            document.getElementById('atHomeToday').innerText = home;
-            document.getElementById('issuesToday').innerText = issues;
-        }
-
-        function resetData() {
-            if (confirm('האם אתה בטוח שברצונך לאפס את כל הנתונים?')) {
-                localStorage.removeItem('attendanceData');
-                attendanceData = {};
-                renderTable();
-                updateStats();
-            }
-        }
-
-        function exportToCSV() {
-            let csv = "שם,תפקיד,מחלקה," + datesList.map(d => d.dateStr).join(",") + "\n";
-            soldiers.forEach((s, sIndex) => {
-                csv += `"${s.name}","${s.role}","${s.dept}"`;
-                datesList.forEach((d, dIndex) => {
-                    csv += `,"${attendanceData[`${sIndex}-${dIndex}`] || 'נוכח'}"`;
-                });
-                csv += "\n";
-            });
-
-            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'attendance_report_2026.csv';
-            a.click();
-        }
-
-        window.onload = initApp;
-    </script>
-</body>
-</html>
+  // גרף ראשי / נתונים
+  if (document.getElementById('ch')){
+    charts.ch = new Chart(document.getElementById('ch'),{type:'bar',
+      data:{labels:D.dates.
