@@ -571,4 +571,96 @@ function drawCharts(){
   // גרף ראשי / נתונים
   if (document.getElementById('ch')){
     charts.ch = new Chart(document.getElementById('ch'),{type:'bar',
-      data:{labels:D.dates.
+      data:{labels:D.dates.map(dm),datasets:[
+        {label:'בבסיס',data:st.map(s=>s.base),backgroundColor:st.map((_,j)=>j===di?c('--ink'):c('--present'))},
+        {label:'בבית',data:st.map(s=>s.home),backgroundColor:c('--home')},
+        {label:'חריגים',data:st.map(s=>s.exc),backgroundColor:c('--sick')}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:false,onClick:(e,els)=>{if(els.length)setDay(els[0].index)},
+        scales:{x:{stacked:true,reverse:true,grid:{display:false},ticks:{font:{family:'Rubik',size:10}}},y:{stacked:true,max:D.soldiers.length,ticks:{font:{family:'Rubik'}}}},
+        plugins:{legend:{position:'top',align:'start',labels:{font:{family:'Rubik'},boxWidth:12}}}}});
+  }
+
+  // דיאגרמות לטאב Analytics
+  if (document.getElementById('chTrend')){
+    charts.trend = new Chart(document.getElementById('chTrend'), {
+      type: 'line',
+      data: {
+        labels: D.dates.map(dm),
+        datasets: [
+          { label: 'בבסיס', data: st.map(s => s.base), borderColor: c('--present'), backgroundColor: c('--present-l'), fill: true, tension: 0.1 },
+          { label: 'בבית', data: st.map(s => s.home), borderColor: c('--home'), backgroundColor: c('--home-l'), fill: false, tension: 0.1 }
+        ]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { x: { reverse: true, ticks: { font: { family: 'Rubik', size: 10 } } }, y: { ticks: { font: { family: 'Rubik' } } } }, plugins: { legend: { position: 'top', labels: { font: { family: 'Rubik' } } } } }
+    });
+  }
+
+  if (document.getElementById('chPie')){
+    let totPresent = 0, totHome = 0, totSick = 0, totDuty = 0, totAwol = 0;
+    D.soldiers.forEach(x => {
+      x.st.forEach(s => {
+        if (s === 'נוכח' || s === 'בדרך מהבית') totPresent++;
+        else if (s === 'בבית' || s === 'בדרך הביתה') totHome++;
+        else if (s === 'מחלה') totSick++;
+        else if (s === 'תפקיד מחוץ ליחידה') totDuty++;
+        else if (s === 'נפקד') totAwol++;
+      });
+    });
+    charts.pie = new Chart(document.getElementById('chPie'), {
+      type: 'doughnut',
+      data: {
+        labels: ['בבסיס', 'בבית', 'מחלה', 'תפקיד חוץ', 'נפקד'],
+        datasets: [{ data: [totPresent, totHome, totSick, totDuty, totAwol], backgroundColor: [c('--present'), c('--home'), c('--sick'), c('--duty'), c('--awol')] }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Rubik' } } } } }
+    });
+  }
+
+  if (document.getElementById('chDepts')){
+    const deptNames = D.depts;
+    const deptAvgs = deptNames.map(d => {
+      const all = D.soldiers.filter(x => x.dept === d);
+      if (!all.length) return 0;
+      let sumPct = 0;
+      D.dates.forEach((_, j) => {
+        const b = all.filter(x => BASE.includes(x.st[j])).length;
+        sumPct += (b / all.length);
+      });
+      return Math.round((sumPct / D.dates.length) * 100);
+    });
+    charts.depts = new Chart(document.getElementById('chDepts'), {
+      type: 'bar',
+      data: {
+        labels: deptNames,
+        datasets: [{ label: 'אחוז נוכחות ממוצע (%)', data: deptAvgs, backgroundColor: c('--present') }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 100, ticks: { font: { family: 'Rubik' } } }, x: { ticks: { font: { family: 'Rubik' } } } }, plugins: { legend: { display: false } } }
+    });
+  }
+
+  // דיאגרמה לכרטיס אישי (Soldier Card)
+  if (document.getElementById('chSoldierPie')){
+    const s = D.soldiers[selectedSoldierIdx] || D.soldiers[0];
+    let b = 0, h = 0, exc = 0;
+    s.st.forEach(st => {
+      if (BASE.includes(st)) b++;
+      else if (HOME.includes(st)) h++;
+      else if (EXC.includes(st)) exc++;
+    });
+    charts.soldierPie = new Chart(document.getElementById('chSoldierPie'), {
+      type: 'doughnut',
+      data: {
+        labels: ['ימי בסיס', 'ימי בית', 'חריגים'],
+        datasets: [{ data: [b, h, exc], backgroundColor: [c('--present'), c('--home'), c('--sick')] }]
+      },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'Rubik' } } } } }
+    });
+  }
+}
+
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && picker) closePicker(); });
+renderTabs();
+if (window.DEMO) setData(window.DEMO); else refresh(true);
+</script>
+</body>
+</html>
