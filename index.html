@@ -1,1 +1,336 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>מערכת נוכחות פלוגתית - קו 2026</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
+        body { background-color: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+        header { background-color: #0f172a; color: white; padding: 16px 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+        h1 { font-size: 22px; font-weight: 700; }
+        p.subtitle { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+        .btn-group { display: flex; gap: 10px; }
+        button { padding: 8px 16px; border-radius: 8px; border: none; font-size: 14px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        .btn-emerald { background-color: #059669; color: white; }
+        .btn-emerald:hover { background-color: #047857; }
+        .btn-rose { background-color: #e11d48; color: white; }
+        .btn-rose:hover { background-color: #be123c; }
+        
+        .stats-bar { background: white; border-bottom: 1px solid #e2e8f0; padding: 16px 24px; }
+        .stats-container { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; text-align: center; }
+        .stat-card { padding: 12px; border-radius: 12px; border: 1px solid; }
+        .stat-card.indigo { background-color: #eef2ff; border-color: #c7d2fe; color: #3730a3; }
+        .stat-card.emerald { background-color: #ecfdf5; border-color: #a7f3d0; color: #065f46; }
+        .stat-card.amber { background-color: #fffbeb; border-color: #fde68a; color: #92400e; }
+        .stat-card.rose { background-color: #fff1f2; border-color: #fecdd3; color: #991b1b; }
+        .stat-val { font-size: 24px; font-weight: 700; margin-top: 4px; display: block; }
+        .stat-label { font-size: 13px; font-weight: 500; }
 
+        main { max-width: 1400px; width: 100%; margin: 24px auto; padding: 0 24px; flex-grow: 1; display: flex; flex-direction: column; gap: 16px; }
+        .controls { background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        input, select { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; outline: none; }
+        input:focus, select:focus { border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.2); }
+
+        .table-container { background: white; border-radius: 12px; border: 1px solid #e2e8f0; overflow-x: auto; flex-grow: 1; max-height: 650px; }
+        table { width: 100%; border-collapse: collapse; text-align: right; font-size: 13px; }
+        th, td { padding: 10px 12px; border-left: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; white-space: nowrap; }
+        th { background-color: #f1f5f9; color: #334155; position: sticky; top: 0; z-index: 10; }
+        th.date-header { background-color: #1e293b; color: white; top: 37px; }
+        .sticky-name { position: sticky; right: 0; background-color: white; z-index: 5; font-weight: 600; }
+        th.sticky-name { z-index: 15; background-color: #f1f5f9; }
+
+        .dept-badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .dept-מפל״ג { background: #fee2e2; color: #991b1b; }
+        .dept-אנוח { background: #fef3c7; color: #92400e; }
+        .dept-חימוש { background: #d1fae5; color: #065f46; }
+        .dept-לוגיסטיקה { background: #e0e7ff; color: #3730a3; }
+        .dept-מטבח { background: #fae8ff; color: #86198f; }
+        .dept-רכב { background: #ccfbf1; color: #115e59; }
+        .dept-שלישות { background: #f3f4f6; color: #1f2937; }
+
+        select.status-select { padding: 4px 8px; border-radius: 6px; font-size: 12px; border: none; font-weight: 500; cursor: pointer; }
+        .status-נוכח { background: #d1fae5; color: #065f46; }
+        .status-בבית { background: #dbeafe; color: #1e40af; }
+        .status-מחלה { background: #fef3c7; color: #92400e; }
+        .status-נפקד { background: #ffe4e6; color: #9f1239; }
+        .status-דרך { background: #f3e8ff; color: #6b21a8; }
+
+        footer { background: white; border-top: 1px solid #e2e8f0; padding: 16px; text-align: center; font-size: 13px; color: #64748b; }
+        .end-line-badge { background: #e11d48; color: white; font-size: 10px; padding: 2px 4px; border-radius: 4px; display: inline-block; margin-right: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <div>
+                <h1>מערכת נוכחות פלוגתית</h1>
+                <p class="subtitle">תקופת קו: 18.10.2026 - 15.12.2026 | סוף קו: 03.12.2026</p>
+            </div>
+            <div class="btn-group">
+                <button class="btn-emerald" onclick="exportToCSV()">ייצוא ל-CSV</button>
+                <button class="btn-rose" onclick="resetData()">איפוס נתונים</button>
+            </div>
+        </div>
+    </header>
+
+    <section class="stats-bar">
+        <div class="stats-container">
+            <div class="stat-card indigo">
+                <span class="stat-label">סך חיילים בסד"כ</span>
+                <span id="totalSoldiers" class="stat-val">0</span>
+            </div>
+            <div class="stat-card emerald">
+                <span class="stat-label">נוכחים היום</span>
+                <span id="presentToday" class="stat-val">0</span>
+            </div>
+            <div class="stat-card amber">
+                <span class="stat-label">בבית / חופשה</span>
+                <span id="atHomeToday" class="stat-val">0</span>
+            </div>
+            <div class="stat-card rose">
+                <span class="stat-label">נפקדים / מחלה</span>
+                <span id="issuesToday" class="stat-val">0</span>
+            </div>
+        </div>
+    </section>
+
+    <main>
+        <div class="controls">
+            <div style="display: flex; gap: 12px; flex-wrap: wrap; width: 100%; max-width: 600px;">
+                <input type="text" id="searchInput" placeholder="חיפוש חייל לפי שם..." oninput="renderTable()" style="flex: 1; min-width: 200px;">
+                <select id="deptFilter" onchange="renderTable()">
+                    <option value="">כל המחלקות</option>
+                    <option value="מפל״ג">מפל״ג</option>
+                    <option value="אנוח">אנוח</option>
+                    <option value="חימוש">חימוש</option>
+                    <option value="לוגיסטיקה">לוגיסטיקה</option>
+                    <option value="מטבח">מטבח</option>
+                    <option value="רכב">רכב</option>
+                    <option value="שלישות">שלישות</option>
+                </select>
+            </div>
+            <div style="font-size: 13px; color: #64748b;">
+                * הנתונים נשמרים אוטומטית בדפדפן (LocalStorage)
+            </div>
+        </div>
+
+        <div class="table-container">
+            <table id="attendanceTable">
+                <thead>
+                    <tr id="headerRowDays"></tr>
+                    <tr id="headerRowDates"></tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </main>
+
+    <footer>
+        מערכת נוכחות פלוגתית מתקדמת | פותחה עבור ניהול קו 2026
+    </footer>
+
+    <script>
+        const statuses = ["נוכח", "בדרך הביתה", "בדרך מהבית", "בבית", "נפקד", "תפקיד מחוץ ליחידה", "מחלה"];
+
+        const soldiers = [
+            { name: "אביב שיטרית", role: "מפל״ג | 8176265", dept: "מפל״ג" },
+            { name: "רגב גורן", role: "מפ״ם ב׳ | 5062763", dept: "מפל״ג" },
+            { name: "בן דוד גפני", role: "סמ״פם | 5410935", dept: "מפל״ג" },
+            { name: "אוריאן דנן", role: "נגד משמעת | 6110296", dept: "מפל״ג" },
+            { name: "נתן יחז ווייל", role: "אנוח | 5352285", dept: "אנוח" },
+            { name: "אלון שניידר", role: "אנוח | 5790248", dept: "אנוח" },
+            { name: "דולב הילל", role: "אנוח | 5862213", dept: "אנוח" },
+            { name: "אורי שטינמץ", role: "אנוח | 6085947", dept: "אנוח" },
+            { name: "אורי אבצוקר", role: "אנוח | 6865628", dept: "אנוח" },
+            { name: "יוסף חיי נשר", role: "אנוח | 7557524", dept: "אנוח" },
+            { name: "יוחננן סלם", role: "אנוח | 7579092", dept: "אנוח" },
+            { name: "אילון זינגר", role: "אנוח | 8012914", dept: "אנוח" },
+            { name: "שלמה מינס", role: "אנוח | 8109182", dept: "אנוח" },
+            { name: "בניה אל כהן", role: "אנוח | 8717405", dept: "אנוח" },
+            { name: "ליאל כלפה", role: "ק״חש | 8249586", dept: "חימוש" },
+            { name: "ולדיסלב חייבולין", role: "חימוש | 6005788", dept: "חימוש" },
+            { name: "לירן חלפון", role: "חימוש | 8620524", dept: "חימוש" },
+            { name: "בן שמואל אבוטבול", role: "חימוש | 8776212", dept: "חימוש" },
+            { name: "עיטם גבאי", role: "חימוש | 9079362", dept: "חימוש" },
+            { name: "בנימין אבדייב", role: "חימוש | 8871842", dept: "חימוש" },
+            { name: "אנטון אגייב", role: "נשק | 9170058", dept: "חימוש" },
+            { name: "רועי קורין", role: "קל״ג / רס״פ | 8436785", dept: "לוגיסטיקה" },
+            { name: "מיקוננט איינאו", role: "לוגיסטקה | 5331450", dept: "לוגיסטיקה" },
+            { name: "ניר אלמקייס", role: "לוגיסטיקה | 5885301", dept: "לוגיסטיקה" },
+            { name: "עלי ח'ניפס", role: "לוגיסטיקה | -", dept: "לוגיסטיקה" },
+            { name: "אלון הובר", role: "לוגיסטיקה | 7570011", dept: "לוגיסטיקה" },
+            { name: "לידור שמואל", role: "לוגיסטיקה | 8384752", dept: "לוגיסטיקה" },
+            { name: "מולה גטסאו", role: "לוגיסטיקה | 9305242", dept: "לוגיסטיקה" },
+            { name: "אילן סטפנוב", role: "רס״ר מטבח | 8508667", dept: "מטבח" },
+            { name: "נוריאל עמר", role: "מטבח | 7647556", dept: "מטבח" },
+            { name: "עמנואל יוחננוב", role: "מטבח | 8165768", dept: "מטבח" },
+            { name: "אריאל כהן חי", role: "מטבח | 8552740", dept: "מטבח" },
+            { name: "רועי טרם", role: "מטבח | 9043036", dept: "מטבח" },
+            { name: "אדר בן שבת", role: "מטבח | 9182003", dept: "מטבח" },
+            { name: "אתי בן שועה", role: "מטבח | 9350650", dept: "מטבח" },
+            { name: "עזאת קטימה", role: "ק.רכב | 7545742", dept: "רכב" },
+            { name: "אורי חודדה", role: "רכב | 5219134", dept: "רכב" },
+            { name: "שרף ביסאן", role: "רכב | 5293810", dept: "רכב" },
+            { name: "אורטל פוזניאק", role: "רכב | 5869246", dept: "רכב" },
+            { name: "ראזי פרחאת", role: "רכב | 8185770", dept: "רכב" },
+            { name: "כפיר דהן", role: "רכב | 8647221", dept: "רכב" },
+            { name: "יוסף חיים חסדאי", role: "רכב | 8878372", dept: "רכב" },
+            { name: "אושרי חי ארחיאל", role: "רכב | 9003039", dept: "רכב" },
+            { name: "אדם קילסוב", role: "רכב | 9048969", dept: "רכב" },
+            { name: "שי לב", role: "רכב | 9060023", dept: "רכב" },
+            { name: "עדן הלוי", role: "רכב | 9290091", dept: "רכב" },
+            { name: "בת אל בן אדרת", role: "רכב | 9295181", dept: "רכב" },
+            { name: "מוחמד סואעד", role: "רכב | 7721226", dept: "רכב" },
+            { name: "יעקב ליונגר", role: "רכב | 6903312", dept: "רכב" },
+            { name: "דניאל סעד", role: "רכב | 9018399", dept: "רכב" },
+            { name: "ציון גלעד", role: "שלישות | 5823561", dept: "שלישות" },
+            { name: "עידו מנור", role: "שלישות | 8021695", dept: "שלישות" },
+            { name: "ליהי גבאי", role: "שלישות | 8487921", dept: "שלישות" },
+            { name: "בר כהן", role: "שלישות | 8752131", dept: "שלישות" },
+            { name: "דניאל אקוקה", role: "שלישות | -", dept: "שלישות" },
+            { name: "קורל קדוש", role: "שלישות | -", dept: "שלישות" }
+        ];
+
+        const startDate = new Date(2026, 9, 18);
+        const endDate = new Date(2026, 11, 15);
+        const datesList = [];
+        const dayNames = ["יום א'", "יום ב'", "יום ג'", "יום ד'", "יום ה'", "יום ו'", "שבת"];
+
+        let curr = new Date(startDate);
+        while (curr <= endDate) {
+            datesList.push({
+                dateStr: curr.toLocaleDateString('he-IL', {day: '2-digit', month: '2-digit', year: 'numeric'}),
+                dayName: dayNames[curr.getDay()],
+                isEndLine: curr.toISOString().split('T')[0] === '2026-12-03'
+            });
+            curr.setDate(curr.getDate() + 1);
+        }
+
+        let attendanceData = JSON.parse(localStorage.getItem('attendanceData')) || {};
+
+        function initApp() {
+            renderHeaders();
+            renderTable();
+            updateStats();
+        }
+
+        function renderHeaders() {
+            const rowDays = document.getElementById('headerRowDays');
+            const rowDates = document.getElementById('headerRowDates');
+
+            let htmlDays = `<th class="sticky-name">שם החייל</th><th>תפקיד</th><th>מחלקה</th>`;
+            let htmlDates = `<th class="sticky-name date-header">סה"כ נוכח</th><th class="date-header">-</th><th class="date-header">-</th>`;
+
+            datesList.forEach(d => {
+                const badge = d.isEndLine ? '<span class="end-line-badge">סוף קו</span>' : '';
+                htmlDays += `<th>${d.dayName} ${badge}</th>`;
+                htmlDates += `<th class="date-header" style="text-align:center;">${d.dateStr}</th>`;
+            });
+
+            rowDays.innerHTML = htmlDays;
+            rowDates.innerHTML = htmlDates;
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            const searchVal = document.getElementById('searchInput').value.toLowerCase();
+            const deptVal = document.getElementById('deptFilter').value;
+
+            let html = '';
+
+            soldiers.forEach((s, sIndex) => {
+                if (searchVal && !s.name.toLowerCase().includes(searchVal)) return;
+                if (deptVal && s.dept !== deptVal) return;
+
+                let presentCount = 0;
+                datesList.forEach((d, dIndex) => {
+                    if (attendanceData[`${sIndex}-${dIndex}`] === 'נוכח') presentCount++;
+                });
+
+                html += `<tr>
+                    <td class="sticky-name">${s.name}</td>
+                    <td style="color: #64748b; font-size: 12px;">${s.role}</td>
+                    <td><span class="dept-badge dept-${s.dept}">${s.dept}</span></td>
+                    <td style="text-align: center; font-weight: bold; color: #059669; background: #f8fafc;">${presentCount}</td>`;
+
+                datesList.forEach((d, dIndex) => {
+                    const val = attendanceData[`${sIndex}-${dIndex}`] || 'נוכח';
+                    let statusClass = 'status-נוכח';
+                    if (val === 'בבית') statusClass = 'status-בבית';
+                    else if (val === 'מחלה') statusClass = 'status-מחלה';
+                    else if (val === 'נפקד') statusClass = 'status-נפקד';
+                    else if (val.includes('דרך')) statusClass = 'status-דרך';
+
+                    html += `<td style="text-align: center;">
+                        <select onchange="updateCell(${sIndex}, ${dIndex}, this.value)" class="status-select ${statusClass}">`;
+                    statuses.forEach(st => {
+                        html += `<option value="${st}" ${val === st ? 'selected' : ''}>${st}</option>`;
+                    });
+                    html += `</select></td>`;
+                });
+
+                html += `</tr>`;
+            });
+
+            tbody.innerHTML = html;
+            document.getElementById('totalSoldiers').innerText = soldiers.length;
+        }
+
+        function updateCell(sIndex, dIndex, val) {
+            attendanceData[`${sIndex}-${dIndex}`] = val;
+            localStorage.setItem('attendanceData', JSON.stringify(attendanceData));
+            renderTable();
+            updateStats();
+        }
+
+        function updateStats() {
+            let present = 0;
+            let home = 0;
+            let issues = 0;
+            const todayIndex = 0;
+
+            soldiers.forEach((s, sIndex) => {
+                const val = attendanceData[`${sIndex}-${todayIndex}`] || 'נוכח';
+                if (val === 'נוכח') present++;
+                else if (val === 'בבית' || val.includes('דרך')) home++;
+                else if (val === 'נפקד' || val === 'מחלה') issues++;
+            });
+
+            document.getElementById('presentToday').innerText = present;
+            document.getElementById('atHomeToday').innerText = home;
+            document.getElementById('issuesToday').innerText = issues;
+        }
+
+        function resetData() {
+            if (confirm('האם אתה בטוח שברצונך לאפס את כל הנתונים?')) {
+                localStorage.removeItem('attendanceData');
+                attendanceData = {};
+                renderTable();
+                updateStats();
+            }
+        }
+
+        function exportToCSV() {
+            let csv = "שם,תפקיד,מחלקה," + datesList.map(d => d.dateStr).join(",") + "\n";
+            soldiers.forEach((s, sIndex) => {
+                csv += `"${s.name}","${s.role}","${s.dept}"`;
+                datesList.forEach((d, dIndex) => {
+                    csv += `,"${attendanceData[`${sIndex}-${dIndex}`] || 'נוכח'}"`;
+                });
+                csv += "\n";
+            });
+
+            const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'attendance_report_2026.csv';
+            a.click();
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
